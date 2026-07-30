@@ -22,4 +22,44 @@ public class PermisosTests
 
         Assert.False(resultado);
     }
+
+    [Fact]
+    public void VerDetalle_AdminSolicitudAjena_DevuelveTrue()
+    {
+        bool resultado = Permisos.VerDetalle(
+            "Admin",
+            false);
+
+        Assert.True(resultado);
+    }
+
+    [Fact]
+    public void VerDetalle_AgenteSolicitudAjena_DevuelveTrue()
+    {
+        bool resultado = Permisos.VerDetalle(
+            "Agente",
+            false);
+
+        Assert.True(resultado);
+    }
+
+    [Fact]
+    public void VerDetalle_SolicitanteSolicitudPropia_DevuelveTrue()
+    {
+        bool resultado = Permisos.VerDetalle(
+            "Solicitante",
+            true);
+
+        Assert.True(resultado);
+    }
+
+    [Fact]
+    public void VerDetalle_SolicitanteSolicitudAjena_DevuelveFalse()
+    {
+        bool resultado = Permisos.VerDetalle(
+            "Solicitante",
+            false);
+
+        Assert.False(resultado);
+    }
 }

@@ -6,4 +6,11 @@ public static class Permisos
     {
         return rol == "Admin"|| rol  == "Agente";
     }
+
+     public static bool VerDetalle(
+        string rol,
+        bool propia)
+    {
+        return rol == "Admin"|| rol  == "Agente" || (rol == "Solicitante" && propia);
+    }
 }
