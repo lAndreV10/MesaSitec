@@ -7,11 +7,13 @@ using Dominio.Entidades;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
 var constructor = WebApplication.CreateBuilder(args);
+constructor.WebHost.UseUrls("http://localhost:5080");
 
 var secretoJwt =
     Environment.GetEnvironmentVariable("JWT_SECRET")
@@ -65,6 +67,49 @@ constructor.Services
 
 constructor.Services.AddAuthorization();
 
+constructor.Services.AddCors(opciones =>
+{
+    opciones.AddPolicy("PermitirFrontend", politica =>
+    {
+        politica
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
+constructor.Services.AddEndpointsApiExplorer();
+constructor.Services.AddSwaggerGen(opciones =>
+{
+    opciones.AddSecurityDefinition(
+        "Bearer",
+        new OpenApiSecurityScheme
+        {
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            In = ParameterLocation.Header,
+            Description = "Ingresa el token JWT."
+        });
+
+    opciones.AddSecurityRequirement(
+        new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                Array.Empty<string>()
+            }
+        });
+});
+
 var aplicacion = constructor.Build();
 using (var alcance = aplicacion.Services.CreateScope())
 {
@@ -78,6 +123,27 @@ using (var alcance = aplicacion.Services.CreateScope())
         contextoDatos,
         passwordHasher);
 }
+
+aplicacion.UseExceptionHandler(manejador =>
+{
+    manejador.Run(async contexto =>
+    {
+        await CrearErrorInterno().ExecuteAsync(contexto);
+    });
+});
+
+aplicacion.UseStatusCodePages(async contexto =>
+{
+    var respuesta = contexto.HttpContext.Response;
+
+    await CrearErrorEstadoHttp(respuesta.StatusCode)
+        .ExecuteAsync(contexto.HttpContext);
+});
+
+aplicacion.UseSwagger();
+aplicacion.UseSwaggerUI();
+
+aplicacion.UseCors("PermitirFrontend");
 
 aplicacion.UseAuthentication();
 aplicacion.UseAuthorization();
@@ -749,6 +815,43 @@ static IResult CrearErrorNoAutenticado()
         {
             ["codigo"] = "NO_AUTENTICADO"
         });
+}
+
+static IResult CrearErrorInterno()
+{
+    return Results.Problem(
+        type: "https://mesasitec.local/errores/error-interno",
+        title: "Error interno",
+        statusCode: StatusCodes.Status500InternalServerError,
+        detail: "Ocurrió un error inesperado.",
+        extensions: new Dictionary<string, object?>
+        {
+            ["codigo"] = "ERROR_INTERNO"
+        });
+}
+
+static IResult CrearErrorEstadoHttp(int estadoHttp)
+{
+    return estadoHttp switch
+    {
+        StatusCodes.Status400BadRequest =>
+            CrearErrorParametro("La solicitud contiene datos inválidos."),
+        StatusCodes.Status401Unauthorized =>
+            CrearErrorNoAutenticado(),
+        StatusCodes.Status403Forbidden =>
+            CrearErrorOperacionNoPermitida(),
+        StatusCodes.Status404NotFound =>
+            CrearErrorRecursoNoEncontrado(),
+        _ => Results.Problem(
+            type: "https://mesasitec.local/errores/error-http",
+            title: "Solicitud no procesada",
+            statusCode: estadoHttp,
+            detail: "La solicitud no pudo procesarse.",
+            extensions: new Dictionary<string, object?>
+            {
+                ["codigo"] = "ERROR_HTTP"
+            })
+    };
 }
 
 static IResult CrearErrorParametro(string detalle)
