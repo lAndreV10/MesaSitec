@@ -1,0 +1,18 @@
+namespace Aplicacion;
+
+public class ResultadoInicioSesion
+{
+    public string AccessToken { get; set; } = string.Empty;
+    public int ExpiraEn { get; set; }
+    public UsuarioSesion Usuario { get; set; } = new();
+}
+
+public class UsuarioSesion
+{
+    public Guid Id { get; set; }
+    public string Nombre { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Rol { get; set; } = string.Empty;
+    public Guid TenantId { get; set; }
+    public string TenantNombre { get; set; } = string.Empty;
+}
