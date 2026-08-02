@@ -2,6 +2,7 @@ export const URL_API = "http://localhost:5080/api/v1"
 export async function peticion<T>(
   ruta: string,
   opciones: RequestInit = {},
+  redirigirEnNoAutenticado = true,
 ): Promise<T> {
   const cabeceras = new Headers(opciones.headers)
 
@@ -18,7 +19,7 @@ export async function peticion<T>(
     headers: cabeceras,
   })
 
-  if (respuesta.status === 401) {
+  if (respuesta.status === 401 && redirigirEnNoAutenticado) {
     localStorage.removeItem("accessToken")
     localStorage.removeItem("usuario")
     window.location.href = "/login"

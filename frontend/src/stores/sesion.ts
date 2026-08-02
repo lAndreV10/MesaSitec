@@ -31,7 +31,7 @@ export const useSesionStore = defineStore("sesion", () => {
     const resultado = await peticion<ResultadoInicioSesion>("/auth/login", {
       method: "POST",
       body: JSON.stringify(datos),
-    })
+    }, false)
 
     guardarSesion(resultado.accessToken, resultado.usuario)
   }
