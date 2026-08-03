@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import { useRouter } from "vue-router"
+import { useNotificacionStore } from "../stores/notificacion"
 import { useSesionStore } from "../stores/sesion"
 
 const email = ref("")
@@ -10,6 +11,7 @@ const cargando = ref(false)
 
 const router = useRouter()
 const sesion = useSesionStore()
+const notificacion = useNotificacionStore()
 
 async function enviarFormulario() {
   error.value = ""
@@ -22,10 +24,12 @@ async function enviarFormulario() {
     })
 
     await router.push("/solicitudes")
+    notificacion.mostrar("Sesión iniciada.")
   } catch (errorCapturado) {
     error.value = errorCapturado instanceof Error
       ? errorCapturado.message
       : "No fue posible iniciar sesión."
+    notificacion.mostrar(error.value)
   } finally {
     cargando.value = false
   }
@@ -33,8 +37,8 @@ async function enviarFormulario() {
 </script>
 
 <template>
-  <main>
-    <form @submit.prevent="enviarFormulario">
+  <main class="vista-login">
+    <form class="tarjeta formulario" @submit.prevent="enviarFormulario">
       <label>
         Correo electrónico
         <input

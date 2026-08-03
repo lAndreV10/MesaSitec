@@ -12,7 +12,7 @@ function cerrarSesion() {
 </script>
 
 <template>
-  <nav data-testid="app-nav">
+  <nav data-testid="app-nav" class="navegacion-aplicacion">
     <span data-testid="nav-usuario-nombre">
       {{ sesion.usuario?.nombre }}
     </span>
