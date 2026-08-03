@@ -135,7 +135,7 @@ onMounted(cargarDatos)
 
       <label>
         Prioridad
-        <select v-model="datos.prioridad">
+        <select v-model="datos.prioridad" data-testid="form-prioridad">
           <option value="Baja">Baja</option>
           <option value="Media">Media</option>
           <option value="Alta">Alta</option>
